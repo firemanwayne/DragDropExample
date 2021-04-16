@@ -1,0 +1,73 @@
+﻿
+<div class="job-status">
+    <h6 class="text-center font-weight-bolder">@Status</h6>
+    <ul class="dropzone @BackgroundColor.ToBS() @dropClass"
+        ondragover="event.preventDefault();"
+        ondragstart="event.dataTransfer.setData('', event.target.id);"
+        @ondrop="HandleDrop"
+        @ondragenter="HandleDragEnter"
+        @ondragleave="HandleDragLeave">
+
+        @if (Tasks.Any())
+        {
+            @foreach (var item in Tasks)
+            {
+                <Draggable Model="item" />
+            }
+        }
+        else
+        {
+            <li class="text-center">You have no tasks</li>
+        }
+    </ul>
+</div>
+@typeparam TValue
+@implements IDisposable
+@code {
+
+    [Inject] HttpClient Http { get; set; }
+
+    [CascadingParameter] DropZone Dropzone { get; set; }
+
+    [Parameter] public StatusEnum Status { get; set; } = StatusEnum.Todo;
+
+    [Parameter] public BackgroundColorEnum BackgroundColor { get; set; } = BackgroundColorEnum.Blue;
+
+    string dropClass = "";
+    IList<IDropableTask> Tasks { get; set; } = new List<IDropableTask>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tasks = await Http.GetFromJsonAsync<IEnumerable<TValue>>("api/tasks") as IEnumerable<IDropableTask>;
+
+        Tasks = tasks
+            .Where(a => a.Status.Equals(Status))
+            .ToList();
+    }
+
+    void HandleDragEnter()
+    {
+        dropClass = Dropzone.Payload.Status != Status ? "can-drop" : "no-drop";
+    }
+
+    void HandleDragLeave()
+    {
+        dropClass = "";
+    }
+
+    async Task HandleDrop()
+    {
+        dropClass = "";
+
+        var item = await Http.GetFromJsonAsync<TValue>($"api/tasks/{Dropzone.Payload.Id}");
+
+        if (item != null && item is IDropableTask t)
+        {
+            t.UpdateStatus(Status);
+        }
+    }
+
+    public void Dispose()
+    {
+    }
+}

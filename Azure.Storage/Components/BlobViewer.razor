@@ -1,0 +1,71 @@
+﻿@code {
+
+    [Parameter] public EventCallback OnUpdateContainer { get; set; }
+
+    [Parameter] public string ContainerName { get; set; }
+
+    [Inject] HttpClient Http { get; set; }
+
+    IEnumerable<BlobResponse> Blobs { get; set; } = new List<BlobResponse>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var blobs = await Http.GetFromJsonAsync<IEnumerable<BlobResponse>>($"api/azure/{ContainerName}/blobs");
+
+            if (blobs != null)
+                Blobs = blobs;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    async Task UpdateHandler()
+    {
+        try
+        {
+            Blobs = new List<BlobResponse>();
+
+            var blobs = await Http.GetFromJsonAsync<IEnumerable<BlobResponse>>($"api/azure/{ContainerName}/blobs");
+
+            if (blobs != null)
+            {
+                Blobs = new List<BlobResponse>();
+                Blobs = blobs;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+
+@if (Blobs != null)
+{
+    <div>
+        <ul>
+            @foreach (var b in Blobs)
+            {
+                <li>
+                    <div>@b.Name</div>
+
+                    @if (b.Properties != null)
+                    {
+                        if (b.Properties.ContentType.Contains("image/"))
+                        {
+                            var snap = b.Snapshot;
+                        }
+                        else
+                        {
+                            var snap = b.Snapshot;
+                        }
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+}

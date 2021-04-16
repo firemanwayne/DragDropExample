@@ -1,0 +1,42 @@
+﻿
+@if (task != null)
+{
+    <li class="draggable" draggable="true" title="@task?.Description" @ondragstart="HandleDragStart">
+
+        <div>
+            <button @onclick="DeleteTask" type="button" class="border-0 bg-transparent float-right">&Chi;</button>
+            <p>@task?.Description</p>
+        </div>
+    </li>
+}
+
+@typeparam TValue
+
+@code {
+
+    [Inject] HttpClient Http { get; set; }
+
+    [CascadingParameter] DropZone Zone { get; set; }
+
+    [Parameter] public TValue Model { get; set; }
+
+    IDropableTask task { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (Model is IDropableTask t)
+            task = t;
+
+        return Task.CompletedTask;
+    }
+
+    void HandleDragStart()
+    {
+        Zone.Payload = Model as IDropableTask;
+    }
+
+    void DeleteTask()
+    {
+        Http.DeleteAsync($"api/tasks/{task?.Id}");
+    }
+}

@@ -1,0 +1,15 @@
+﻿.bg-danger-30 {
+    background-color: rgba(255,0,0,0.3);
+}
+
+.bg-success-30 {
+    background-color: rgba(0,255,0,0.3);
+}
+
+.bg-primary-30 {
+    background-color: rgba(0,0,255,0.3);
+}
+
+.bg-secondary-30 {
+    background-color: rgba(192,192,192,0.3);
+}

@@ -1,0 +1,116 @@
+﻿<h3>BlobUploader</h3>
+
+@code {
+    IReadOnlyList<IBrowserFile> files = new List<IBrowserFile>();
+
+    List<string> urls = new List<string>();
+
+    string dropClass = string.Empty;
+
+    [Inject] public HttpClient Http { get; set; }
+
+    [Parameter] public string ContainerName { get; set; }
+
+    void HandleDragEnter()
+    {
+        dropClass = "dropAreaDrug";
+    }
+
+    void HandleDragLeave()
+    {
+        dropClass = string.Empty;
+    }
+
+    async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        dropClass = string.Empty;
+        try
+        {
+            if (e.FileCount > 1)
+            {
+                files = e.GetMultipleFiles();
+                urls.Clear();
+                urls.AddRange(await SaveFiles(files));
+            }
+            else
+            {
+                files = null;
+                var url = await SaveFile(e.File);
+                urls.Clear();
+                urls.Add(url);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+    async Task<List<string>> SaveFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        var list = new List<string>();
+        var guid = Guid.NewGuid().ToString();
+        foreach (var file in files)
+        {
+            var url = await SaveFile(file, guid);
+            list.Add(url);
+        }
+        return list;
+    }
+
+    async Task<string> SaveFile(IBrowserFile file, string guid = null)
+    {
+        if (guid == null)
+            guid = Guid.NewGuid().ToString();
+
+        using var ms = file.OpenReadStream();
+
+        var content = new MultipartFormDataContent();
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+        content.Add(new StreamContent(ms, Convert.ToInt32(file.Size)), file.Name, file.Name);
+
+        var response = await Http.PostAsync($"api/upload/{ContainerName}", content);
+        var ImgUrl = await response.Content.ReadAsStringAsync();
+
+        return ImgUrl;
+    }
+}
+
+<div>
+    <div class="inputArea">
+        <InputFile id="inputDefault"
+                   OnChange="OnInputFileChange"
+                   accept="image/png,image/gif,image/jpeg" />
+    </div>
+
+    <div class="dropArea @dropClass">
+        Drag and drop your files here or click to open file loading dialogue...
+        <InputFile id="inputDrop"
+                   OnChange="OnInputFileChange"
+                   @ondragenter="HandleDragEnter"
+                   @ondragleave="HandleDragLeave"
+                   multiple />
+    </div>
+
+    @if (files != null && files.Count > 1)
+    {
+        <div>
+            <ul>
+                @foreach (var file in files)
+                {
+                    <li>@file.Name</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (urls.Count > 0)
+    {
+        foreach (var url in urls)
+        {
+            <br />
+            <a href="@url" download>@url</a>
+        }
+    }
+</div>

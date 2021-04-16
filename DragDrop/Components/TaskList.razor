@@ -1,0 +1,27 @@
+﻿@typeparam TValue
+
+@code {   
+
+    [Inject] HttpClient Http { get; set; }
+
+    [Parameter] public RenderFragment<TValue> Content { get; set; }
+
+    IEnumerable<TValue> Tasks { get; set; } = new List<TValue>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var tasks = await Http.GetFromJsonAsync<IEnumerable<TValue>>("api/tasks");
+
+        if (tasks != null)
+            Tasks = tasks;
+    }
+}
+
+<div class="container-fluid">
+    <ul class="list-group">
+        @foreach (var t in Tasks.ToList())
+        {
+            @Content(t)            
+        }
+    </ul>
+</div>

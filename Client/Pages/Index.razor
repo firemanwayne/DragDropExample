@@ -1,0 +1,51 @@
+﻿@page "/"
+
+<div class="container">
+    <div class="form-group">
+        <label>Description: </label>
+        <input @bind="@newDescription" type="text" class="form-control" placeholder="Enter task description" />
+        <button @onclick="CreateNewTask" type="button" class="btn btn-outline-danger">Add Task</button>
+    </div>
+</div>
+
+<DropZone OnStatusUpdated="(() => StateHasChanged())">    
+    <DropLane TValue="JobModel" Status="StatusEnum.Todo" BackgroundColor="BackgroundColorEnum.Red" />
+    <DropLane TValue="JobModel" Status="StatusEnum.Started" BackgroundColor="BackgroundColorEnum.Blue" />
+    <DropLane TValue="JobModel" Status="StatusEnum.Completed" BackgroundColor="BackgroundColorEnum.Green" />    
+</DropZone>
+
+<TaskList TValue="JobModel">
+    <Content Context="t">
+        <li class="list-group-item">
+            <p>
+                <div>@t.Status</div>
+            </p>
+            <p>
+                <div>Id: @t.Id</div>
+                <div>Last Updated: @t.LastUpdated</div>
+                <div>Description: @t.Description</div>
+                <div>Started: @t.Started</div>
+                <div>Completed: @t.Completed</div>
+            </p>
+        </li>
+    </Content>
+</TaskList>
+
+@code {
+    string newDescription;
+
+    [Inject] HttpClient Http { get; set; }
+
+    void CreateNewTask()
+    {
+        if (string.IsNullOrEmpty(newDescription))
+            return;
+        else
+        {
+            var data = JsonSerializer.Serialize<JobModel>(new() { Description = newDescription });
+
+            Http.PostAsJsonAsync("api/tasks", data);
+        }
+        newDescription = "";
+    }
+}

@@ -1,0 +1,57 @@
+﻿@code {
+
+    string sizeString;
+    int size;
+    int margin;
+    string marginString;
+
+    [Parameter]
+    public int Size
+    {
+        get => size;
+        set
+        {
+            size = value;
+            sizeString = $"{value}px";
+        }
+    }
+    [Parameter]
+    public int Margin
+    {
+        get => margin;
+        set
+        {
+            margin = value;
+            marginString = $"{value}px;";
+        }
+    }
+
+    [Parameter] public object BackGroundColor { get; set; }
+
+    [Parameter] public RenderFragment Content { get; set; }
+
+    [CascadingParameter] DropZone Dropzone { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        try
+        {
+           
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+<div style="
+        width: @sizeString;
+        height: @sizeString;
+        background-color: @BackGroundColor;
+        border:1px solid black;
+        margin:@marginString">
+    @Content
+</div>

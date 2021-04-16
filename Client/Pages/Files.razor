@@ -1,0 +1,24 @@
+﻿@page "/Files"
+
+@using Azure.CustomStorage.Components
+
+@code{
+    public string ContainerName { get; set; }
+}
+
+<h3>Files</h3>
+
+<div>
+    <input @bind="@ContainerName" class="form-control" placeholder="Enter container name" />
+
+    @if (!string.IsNullOrEmpty(ContainerName))
+    {
+        <div class="py-4">
+            <BlobUploader ContainerName="@ContainerName" />
+        </div>
+
+        <div class="py-4">
+            <BlobViewer ContainerName="@ContainerName" />
+        </div>
+    }
+</div>

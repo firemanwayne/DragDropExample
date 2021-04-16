@@ -1,0 +1,29 @@
+﻿<div class="jobs-container">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+<hr />
+<p>Last updated: <strong>@lastUpdated</strong></p>
+<hr />
+
+@code {
+    [Inject] HttpClient Http { get; set; }
+
+    string lastUpdated;   
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter] public EventCallback<IDropableTask> OnStatusUpdated { get; set; }
+
+    public IDropableTask Payload { get; set; }
+
+    public async Task UpdateAsync()
+    {    
+        if (Payload != null)
+        {
+            await OnStatusUpdated.InvokeAsync(Payload);
+        }
+    }
+}
